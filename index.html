@@ -4,12 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QAL GEBEYA · Elite Account Solutions</title>
-    <!-- Font Awesome 6 for icons -->
+    <!-- Font Awesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <!-- Elegant, readable fonts with Amharic support -->
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Ethiopic:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <!-- Firebase SDKs (compat) -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
     <style>
         :root {
             --bg: #0a0a0a;
@@ -56,14 +61,8 @@
             --header-bg: rgba(249, 247, 242, 0.94);
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        html {
-            scroll-behavior: smooth;
-        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        html { scroll-behavior: smooth; }
         body {
             font-family: var(--sans);
             background: var(--bg);
@@ -75,692 +74,194 @@
         }
         body::before {
             content: '';
-            position: fixed;
-            inset: 0;
-            background: radial-gradient(circle at 30% 40%, rgba(212, 175, 55, 0.04) 0%, transparent 60%),
-                radial-gradient(circle at 70% 80%, rgba(240, 208, 96, 0.05) 0%, transparent 60%);
-            pointer-events: none;
-            z-index: 0;
+            position: fixed; inset: 0;
+            background: radial-gradient(circle at 30% 40%, rgba(212,175,55,0.04) 0%, transparent 60%),
+                        radial-gradient(circle at 70% 80%, rgba(240,208,96,0.05) 0%, transparent 60%);
+            pointer-events: none; z-index: 0;
         }
         [data-theme="light"] body::before {
-            background: radial-gradient(circle at 30% 40%, rgba(154, 112, 24, 0.05) 0%, transparent 60%),
-                radial-gradient(circle at 70% 80%, rgba(154, 112, 24, 0.06) 0%, transparent 60%);
+            background: radial-gradient(circle at 30% 40%, rgba(154,112,24,0.05) 0%, transparent 60%),
+                        radial-gradient(circle at 70% 80%, rgba(154,112,24,0.06) 0%, transparent 60%);
         }
 
-        .container {
-            position: relative;
-            z-index: 1;
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 0 24px;
-        }
+        .container { position: relative; z-index:1; max-width:1100px; margin:0 auto; padding:0 24px; }
 
         /* Fixed Header */
         .navbar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 14px 32px;
-            background: var(--header-bg);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border-bottom: 1px solid var(--border-gold);
-            transition: background 0.4s, border-color 0.3s;
-            flex-wrap: wrap;
-            gap: 12px;
+            position: fixed; top:0; left:0; right:0; z-index:1000;
+            display:flex; align-items:center; justify-content:space-between;
+            padding:14px 32px; background:var(--header-bg);
+            backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+            border-bottom:1px solid var(--border-gold);
+            transition:background 0.4s, border-color 0.3s;
+            flex-wrap:wrap; gap:12px;
         }
         .nav-logo {
-            font-family: var(--serif);
-            font-size: 1.6rem;
-            font-weight: 700;
-            letter-spacing: 2px;
-            background: var(--gold-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-transform: uppercase;
-            transition: var(--transition);
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            white-space: nowrap;
+            font-family:var(--serif); font-size:1.6rem; font-weight:700;
+            letter-spacing:2px;
+            background:var(--gold-gradient); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+            text-transform:uppercase; transition:var(--transition);
+            display:flex; align-items:center; gap:5px; white-space:nowrap;
         }
         .nav-logo .amharic-mark {
-            font-family: var(--serif);
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--gold);
-            -webkit-text-fill-color: var(--gold);
-            background: none;
-            line-height: 1;
+            font-family:var(--serif); font-size:2rem; font-weight:700;
+            color:var(--gold); -webkit-text-fill-color:var(--gold);
+            background:none; line-height:1;
         }
-        .nav-actions {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-shrink: 0;
+        .nav-actions { display:flex; align-items:center; gap:10px; flex-shrink:0; }
+        .lang-btn, .theme-btn {
+            background:transparent; border:1px solid var(--gold); color:var(--gold);
+            padding:6px 12px; border-radius:30px; font-size:0.75rem; font-weight:600;
+            letter-spacing:1px; cursor:pointer; transition:var(--transition);
+            text-transform:uppercase; font-family:var(--sans); white-space:nowrap;
         }
-        .lang-btn,
-        .theme-btn {
-            background: transparent;
-            border: 1px solid var(--gold);
-            color: var(--gold);
-            padding: 6px 12px;
-            border-radius: 30px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            letter-spacing: 1px;
-            cursor: pointer;
-            transition: var(--transition);
-            text-transform: uppercase;
-            font-family: var(--sans);
-            white-space: nowrap;
+        .lang-btn:hover, .theme-btn:hover {
+            background:rgba(212,175,55,0.1); border-color:var(--gold-light); color:var(--text-strong);
         }
-        .lang-btn:hover,
-        .theme-btn:hover {
-            background: rgba(212, 175, 55, 0.1);
-            border-color: var(--gold-light);
-            color: var(--text-strong);
-        }
-        .nav-links {
-            display: flex;
-            gap: 20px;
-            list-style: none;
-            flex-wrap: wrap;
-        }
+        .nav-links { display:flex; gap:20px; list-style:none; flex-wrap:wrap; }
         .nav-links a {
-            color: var(--text-dim);
-            text-decoration: none;
-            font-weight: 500;
-            font-size: 0.8rem;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            transition: color var(--transition);
-            position: relative;
-            white-space: nowrap;
+            color:var(--text-dim); text-decoration:none; font-weight:500;
+            font-size:0.8rem; letter-spacing:1px; text-transform:uppercase;
+            transition:color var(--transition); position:relative; white-space:nowrap;
         }
         .nav-links a::after {
-            content: '';
-            position: absolute;
-            bottom: -5px;
-            left: 0;
-            width: 100%;
-            height: 1px;
-            background: var(--gold);
-            transform: scaleX(0);
-            transform-origin: right;
-            transition: transform var(--transition);
+            content:''; position:absolute; bottom:-5px; left:0; width:100%; height:1px;
+            background:var(--gold); transform:scaleX(0); transform-origin:right;
+            transition:transform var(--transition);
         }
-        .nav-links a:hover {
-            color: var(--text-strong);
-        }
-        .nav-links a:hover::after {
-            transform: scaleX(1);
-            transform-origin: left;
-        }
+        .nav-links a:hover { color:var(--text-strong); }
+        .nav-links a:hover::after { transform:scaleX(1); transform-origin:left; }
 
-        /* Brand watermark */
-        .brand-mark {
-            font-family: var(--serif);
-            font-size: 10rem;
-            font-weight: 700;
-            color: var(--gold);
-            opacity: 0.025;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            pointer-events: none;
-            z-index: 0;
-        }
-        [data-theme="light"] .brand-mark {
-            opacity: 0.04;
-        }
+        .brand-mark { font-family:var(--serif); font-size:10rem; font-weight:700; color:var(--gold); opacity:0.025; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); pointer-events:none; z-index:0; }
+        [data-theme="light"] .brand-mark { opacity:0.04; }
 
-        /* Hero */
-        .hero {
-            text-align: center;
-            padding: 60px 20px 50px;
-            position: relative;
-        }
-        .hero-mark-watermark {
-            font-family: var(--serif);
-            font-size: 12rem;
-            font-weight: 700;
-            color: var(--gold);
-            opacity: 0.025;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            pointer-events: none;
-            letter-spacing: 8px;
-            z-index: 0;
-        }
-        [data-theme="light"] .hero-mark-watermark {
-            opacity: 0.04;
-        }
-        .hero-icon {
-            font-size: 3.5rem;
-            color: var(--gold);
-            margin-bottom: 15px;
-            filter: drop-shadow(0 0 12px var(--gold));
-            animation: floatIcon 3s infinite ease-in-out;
-            display: block;
-            position: relative;
-            z-index: 1;
-        }
-        @keyframes floatIcon {
-            0%,
-            100% {
-                transform: translateY(0);
-            }
-            50% {
-                transform: translateY(-8px);
-            }
-        }
-        .hero h1 {
-            font-family: var(--serif);
-            font-size: clamp(2.5rem, 7vw, 5rem);
-            font-weight: 700;
-            letter-spacing: 4px;
-            background: var(--gold-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            line-height: 1.1;
-            margin-bottom: 10px;
-            position: relative;
-            z-index: 1;
-        }
-        .hero .subtitle {
-            font-family: var(--serif);
-            font-size: 1.4rem;
-            font-weight: 500;
-            color: var(--gold-light);
-            letter-spacing: 3px;
-            margin-bottom: 14px;
-            position: relative;
-            z-index: 1;
-        }
-        .hero .tagline {
-            font-size: 0.95rem;
-            color: var(--text-dim);
-            max-width: 500px;
-            margin: 0 auto 28px;
-            font-style: italic;
-            position: relative;
-            z-index: 1;
-        }
-        .hero-buttons {
-            display: flex;
-            gap: 16px;
-            justify-content: center;
-            flex-wrap: wrap;
-            position: relative;
-            z-index: 1;
-        }
-        .hero-cta {
-            display: inline-block;
-            padding: 14px 32px;
-            border: 1px solid var(--gold);
-            color: var(--gold);
-            text-decoration: none;
-            font-weight: 600;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            font-size: 0.85rem;
-            border-radius: 4px;
-            transition: all var(--transition);
-            background: transparent;
-            position: relative;
-            overflow: hidden;
-            z-index: 1;
-        }
-        .hero-cta::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.15), transparent);
-            transition: left 0.6s;
-            z-index: -1;
-        }
-        .hero-cta:hover {
-            background: rgba(212, 175, 55, 0.08);
-            border-color: var(--gold-light);
-            color: #fff;
-            box-shadow: 0 0 25px rgba(212, 175, 55, 0.15);
-        }
-        .hero-cta:hover::before {
-            left: 100%;
-        }
+        .hero { text-align:center; padding:60px 20px 50px; position:relative; }
+        .hero-mark-watermark { font-family:var(--serif); font-size:12rem; font-weight:700; color:var(--gold); opacity:0.025; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); pointer-events:none; letter-spacing:8px; z-index:0; }
+        [data-theme="light"] .hero-mark-watermark { opacity:0.04; }
+        .hero-icon { font-size:3.5rem; color:var(--gold); margin-bottom:15px; filter:drop-shadow(0 0 12px var(--gold)); animation:floatIcon 3s infinite ease-in-out; display:block; position:relative; z-index:1; }
+        @keyframes floatIcon { 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-8px); } }
+        .hero h1 { font-family:var(--serif); font-size:clamp(2.5rem,7vw,5rem); font-weight:700; letter-spacing:4px; background:var(--gold-gradient); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; line-height:1.1; margin-bottom:10px; position:relative; z-index:1; }
+        .hero .subtitle { font-family:var(--serif); font-size:1.4rem; font-weight:500; color:var(--gold-light); letter-spacing:3px; margin-bottom:14px; position:relative; z-index:1; }
+        .hero .tagline { font-size:0.95rem; color:var(--text-dim); max-width:500px; margin:0 auto 28px; font-style:italic; position:relative; z-index:1; }
+        .hero-buttons { display:flex; gap:16px; justify-content:center; flex-wrap:wrap; position:relative; z-index:1; }
+        .hero-cta { display:inline-block; padding:14px 32px; border:1px solid var(--gold); color:var(--gold); text-decoration:none; font-weight:600; letter-spacing:2px; text-transform:uppercase; font-size:0.85rem; border-radius:4px; transition:all var(--transition); background:transparent; position:relative; overflow:hidden; z-index:1; }
+        .hero-cta::before { content:''; position:absolute; top:0; left:-100%; width:100%; height:100%; background:linear-gradient(90deg,transparent,rgba(212,175,55,0.15),transparent); transition:left 0.6s; z-index:-1; }
+        .hero-cta:hover { background:rgba(212,175,55,0.08); border-color:var(--gold-light); color:#fff; box-shadow:0 0 25px rgba(212,175,55,0.15); }
+        .hero-cta:hover::before { left:100%; }
 
-        /* Sections */
-        section {
-            margin: 50px 0;
-            padding: 36px 28px;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            position: relative;
-            overflow: hidden;
-            transition: background 0.4s, border-color 0.3s;
-        }
-        section:hover {
-            border-color: var(--border-gold);
-        }
-        .section-title {
-            font-family: var(--serif);
-            font-size: 2rem;
-            font-weight: 600;
-            color: var(--gold);
-            margin-bottom: 22px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            letter-spacing: 1px;
-            position: relative;
-            z-index: 1;
-        }
-        .section-line {
-            flex: 1;
-            height: 1px;
-            background: linear-gradient(90deg, var(--border-gold), transparent);
-        }
-        .section-symbol {
-            font-size: 1.7rem;
-            color: var(--gold);
-            opacity: 0.85;
-        }
+        section { margin:50px 0; padding:36px 28px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); position:relative; overflow:hidden; transition:background 0.4s, border-color 0.3s; }
+        section:hover { border-color:var(--border-gold); }
+        .section-title { font-family:var(--serif); font-size:2rem; font-weight:600; color:var(--gold); margin-bottom:22px; display:flex; align-items:center; gap:10px; letter-spacing:1px; position:relative; z-index:1; }
+        .section-line { flex:1; height:1px; background:linear-gradient(90deg,var(--border-gold),transparent); }
+        .section-symbol { font-size:1.7rem; color:var(--gold); opacity:0.85; }
+        .about-text { font-size:1rem; color:var(--text-dim); max-width:700px; line-height:1.8; position:relative; z-index:1; }
 
-        .about-text {
-            font-size: 1rem;
-            color: var(--text-dim);
-            max-width: 700px;
-            line-height: 1.8;
-            position: relative;
-            z-index: 1;
-        }
+        .services-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:18px; position:relative; z-index:1; }
+        .service-card { background:var(--card-bg); border:1px solid var(--card-border); border-radius:var(--radius-sm); padding:28px 20px; text-align:center; transition:var(--transition); position:relative; overflow:hidden; }
+        .service-card:hover { border-color:var(--gold); transform:translateY(-6px); box-shadow:0 16px 36px rgba(212,175,55,0.06); }
+        .service-card::after { content:''; position:absolute; bottom:0; left:0; width:100%; height:2px; background:var(--gold-gradient); transform:scaleX(0); transition:transform var(--transition); }
+        .service-card:hover::after { transform:scaleX(1); }
+        .service-icon { font-size:2.6rem; color:var(--gold); margin-bottom:12px; transition:transform 0.3s; }
+        .service-card:hover .service-icon { transform:scale(1.1); }
+        .service-title { font-family:var(--serif); font-size:1.5rem; font-weight:600; color:var(--gold-light); margin-bottom:8px; }
+        .service-desc { color:var(--text-dim); font-size:0.9rem; line-height:1.5; }
 
-        /* Services */
-        .services-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 18px;
-            position: relative;
-            z-index: 1;
-        }
-        .service-card {
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: var(--radius-sm);
-            padding: 28px 20px;
-            text-align: center;
-            transition: var(--transition);
-            position: relative;
-            overflow: hidden;
-        }
-        .service-card:hover {
-            border-color: var(--gold);
-            transform: translateY(-6px);
-            box-shadow: 0 16px 36px rgba(212, 175, 55, 0.06);
-        }
-        .service-card::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 2px;
-            background: var(--gold-gradient);
-            transform: scaleX(0);
-            transition: transform var(--transition);
-        }
-        .service-card:hover::after {
-            transform: scaleX(1);
-        }
-        .service-icon {
-            font-size: 2.6rem;
-            color: var(--gold);
-            margin-bottom: 12px;
-            transition: transform 0.3s;
-        }
-        .service-card:hover .service-icon {
-            transform: scale(1.1);
-        }
-        .service-title {
-            font-family: var(--serif);
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: var(--gold-light);
-            margin-bottom: 8px;
-        }
-        .service-desc {
-            color: var(--text-dim);
-            font-size: 0.9rem;
-            line-height: 1.5;
-        }
+        .features-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:14px; position:relative; z-index:1; }
+        .feature-item { display:flex; align-items:center; gap:10px; padding:14px 18px; background:var(--card-bg); border:1px solid var(--card-border); border-radius:40px; transition:var(--transition); }
+        .feature-item:hover { border-color:var(--gold); background:var(--surface-light); }
+        .feature-symbol { font-size:1.3rem; color:var(--gold); flex-shrink:0; }
+        .feature-text { font-weight:500; color:var(--text); font-size:0.9rem; }
 
-        /* Features */
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 14px;
-            position: relative;
-            z-index: 1;
-        }
-        .feature-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 14px 18px;
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: 40px;
-            transition: var(--transition);
-        }
-        .feature-item:hover {
-            border-color: var(--gold);
-            background: var(--surface-light);
-        }
-        .feature-symbol {
-            font-size: 1.3rem;
-            color: var(--gold);
-            flex-shrink: 0;
-        }
-        .feature-text {
-            font-weight: 500;
-            color: var(--text);
-            font-size: 0.9rem;
-        }
-
-        /* Payment */
-        .payment-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 16px;
-            justify-content: center;
-            position: relative;
-            z-index: 1;
-        }
-        .payment-item {
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: var(--radius-sm);
-            padding: 18px 26px;
-            text-align: center;
-            transition: var(--transition);
-            min-width: 110px;
-        }
-        .payment-item:hover {
-            border-color: var(--gold);
-            box-shadow: 0 8px 20px rgba(212, 175, 55, 0.06);
-        }
-        .payment-icon {
-            font-size: 1.8rem;
-            color: var(--gold);
-            margin-bottom: 6px;
-        }
-        .payment-name {
-            font-weight: 600;
-            color: var(--text-strong);
-            font-size: 0.9rem;
-        }
+        .payment-grid { display:flex; flex-wrap:wrap; gap:16px; justify-content:center; position:relative; z-index:1; }
+        .payment-item { background:var(--card-bg); border:1px solid var(--card-border); border-radius:var(--radius-sm); padding:18px 26px; text-align:center; transition:var(--transition); min-width:110px; }
+        .payment-item:hover { border-color:var(--gold); box-shadow:0 8px 20px rgba(212,175,55,0.06); }
+        .payment-icon { font-size:1.8rem; color:var(--gold); margin-bottom:6px; }
+        .payment-name { font-weight:600; color:var(--text-strong); font-size:0.9rem; }
 
         /* Reviews */
-        .reviews-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            gap: 18px;
-            position: relative;
-            z-index: 1;
-        }
-        .review-card {
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: var(--radius);
-            padding: 24px 20px;
-            text-align: center;
-            transition: var(--transition);
-        }
-        .review-card:hover {
-            border-color: var(--gold);
-            box-shadow: 0 10px 28px rgba(212, 175, 55, 0.05);
-            transform: translateY(-3px);
-        }
-        .review-stars {
-            color: var(--star-color);
-            font-size: 1.1rem;
-            letter-spacing: 3px;
-            margin-bottom: 12px;
-        }
-        .review-quote {
-            font-family: var(--serif);
-            font-size: 1.05rem;
-            font-style: italic;
-            color: var(--text);
-            line-height: 1.6;
-            margin-bottom: 10px;
-        }
-        .review-author {
-            color: var(--gold);
-            font-weight: 600;
-            font-size: 0.85rem;
-        }
-        .review-platform {
-            color: var(--text-dim);
-            font-size: 0.75rem;
-            margin-top: 3px;
-        }
+        .reviews-header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:20px; position:relative; z-index:1; }
+        .review-btn { background:transparent; border:1px solid var(--gold); color:var(--gold); padding:10px 20px; border-radius:30px; font-weight:600; letter-spacing:1px; font-size:0.8rem; cursor:pointer; transition:var(--transition); text-transform:uppercase; }
+        .review-btn:hover { background:rgba(212,175,55,0.1); border-color:var(--gold-light); color:#fff; }
+        .reviews-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:18px; position:relative; z-index:1; }
+        .review-card { background:var(--card-bg); border:1px solid var(--card-border); border-radius:var(--radius); padding:24px 20px; text-align:center; transition:var(--transition); }
+        .review-card:hover { border-color:var(--gold); box-shadow:0 10px 28px rgba(212,175,55,0.05); transform:translateY(-3px); }
+        .review-stars { color:var(--star-color); font-size:1.1rem; letter-spacing:3px; margin-bottom:12px; }
+        .review-quote { font-family:var(--serif); font-size:1.05rem; font-style:italic; color:var(--text); line-height:1.6; margin-bottom:10px; }
+        .review-author { color:var(--gold); font-weight:600; font-size:0.85rem; }
+        .review-username { color:var(--text-dim); font-size:0.75rem; margin-bottom:4px; }
+        .review-date { color:var(--text-dim); font-size:0.7rem; margin-top:2px; }
+
+        .see-all-btn { display:none; margin:20px auto 0; text-align:center; color:var(--gold); cursor:pointer; font-weight:600; letter-spacing:1px; font-size:0.85rem; transition:var(--transition); text-transform:uppercase; }
+        .see-all-btn:hover { color:var(--gold-light); }
 
         /* Contact */
-        .contact-wrapper {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 24px;
-            align-items: flex-start;
-            position: relative;
-            z-index: 1;
-        }
-        .contact-info {
-            flex: 1;
-            min-width: 240px;
-        }
-        .contact-detail {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 16px;
-            padding: 14px 18px;
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: var(--radius-sm);
-            transition: var(--transition);
-            text-decoration: none;
-            color: var(--text);
-        }
-        .contact-detail:hover {
-            border-color: var(--gold);
-            background: var(--surface-light);
-            text-decoration: none;
-        }
-        .contact-detail-icon {
-            font-size: 1.6rem;
-            color: var(--gold);
-            flex-shrink: 0;
-        }
-        .contact-detail-text {
-            font-weight: 500;
-            color: var(--text);
-            font-size: 0.9rem;
-        }
-        .contact-detail-text strong {
-            color: var(--text-strong);
-        }
+        .contact-wrapper { display:flex; flex-wrap:wrap; gap:24px; align-items:flex-start; position:relative; z-index:1; }
+        .contact-info { flex:1; min-width:240px; }
+        .contact-detail { display:flex; align-items:center; gap:12px; margin-bottom:16px; padding:14px 18px; background:var(--card-bg); border:1px solid var(--card-border); border-radius:var(--radius-sm); transition:var(--transition); text-decoration:none; color:var(--text); }
+        .contact-detail:hover { border-color:var(--gold); background:var(--surface-light); text-decoration:none; }
+        .contact-detail-icon { font-size:1.6rem; color:var(--gold); flex-shrink:0; }
+        .contact-detail-text { font-weight:500; color:var(--text); font-size:0.9rem; }
+        .contact-detail-text strong { color:var(--text-strong); }
 
-        /* Powered by */
-        .powered-by {
-            text-align: center;
-            padding: 20px 0;
-            border-top: 1px solid var(--border-gold);
-            margin-top: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            flex-wrap: wrap;
-            color: var(--text-dim);
-            font-size: 0.85rem;
-        }
-        .powered-by img {
-            height: 28px;
-            width: auto;
-            vertical-align: middle;
-        }
-        .powered-by .gold-text {
-            color: var(--gold);
-            font-weight: 600;
-        }
+        .powered-by { text-align:center; padding:20px 0; border-top:1px solid var(--border-gold); margin-top:30px; display:flex; align-items:center; justify-content:center; gap:8px; flex-wrap:wrap; color:var(--text-dim); font-size:0.85rem; }
+        .powered-by img { height:28px; width:auto; vertical-align:middle; }
+        .powered-by .gold-text { color:var(--gold); font-weight:600; }
 
-        footer {
-            text-align: center;
-            padding: 20px 0;
-            color: var(--text-dim);
-            font-size: 0.8rem;
-            border-top: 1px solid var(--border);
-        }
-        footer .gold-text {
-            color: var(--gold);
-            font-weight: 600;
-        }
+        footer { text-align:center; padding:20px 0; color:var(--text-dim); font-size:0.8rem; border-top:1px solid var(--border); }
+        footer .gold-text { color:var(--gold); font-weight:600; }
 
-        .reveal {
-            opacity: 0;
-            transform: translateY(30px);
-            transition: opacity 0.7s ease, transform 0.7s ease;
-        }
-        .reveal.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
+        .reveal { opacity:0; transform:translateY(30px); transition:opacity 0.7s ease, transform 0.7s ease; }
+        .reveal.visible { opacity:1; transform:translateY(0); }
 
-        @media (max-width: 900px) {
-            .navbar {
-                padding: 12px 18px;
-                gap: 8px;
-            }
-            .nav-logo {
-                font-size: 1.3rem;
-            }
-            .nav-logo .amharic-mark {
-                font-size: 1.6rem;
-            }
-            .nav-links {
-                gap: 12px;
-            }
-            .nav-links a {
-                font-size: 0.7rem;
-            }
-            .hero h1 {
-                font-size: 2.5rem;
-            }
-            .hero-mark-watermark {
-                font-size: 6rem;
-            }
-            .brand-mark {
-                font-size: 5rem;
-            }
-            section {
-                padding: 24px 16px;
-                margin: 36px 0;
-            }
-            .section-title {
-                font-size: 1.5rem;
-            }
-            .services-grid {
-                grid-template-columns: 1fr;
-            }
-            .features-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            .reviews-grid {
-                grid-template-columns: 1fr;
-            }
-            body {
-                padding-top: 70px;
-            }
-        }
+        /* Modal */
+        .modal-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:2000; display:none; align-items:center; justify-content:center; }
+        .modal-overlay.active { display:flex; }
+        .modal { background:var(--surface); border:1px solid var(--border-gold); border-radius:var(--radius); padding:30px; max-width:500px; width:90%; position:relative; box-shadow:var(--shadow); }
+        .modal h3 { font-family:var(--serif); color:var(--gold); margin-bottom:20px; font-size:1.5rem; }
+        .modal input, .modal textarea { width:100%; background:var(--card-bg); border:1px solid var(--card-border); padding:12px 15px; margin-bottom:15px; border-radius:8px; color:var(--text); font-family:var(--sans); transition:border-color 0.3s; }
+        .modal input:focus, .modal textarea:focus { outline:none; border-color:var(--gold); }
+        .star-rating { display:flex; gap:8px; margin-bottom:15px; font-size:1.8rem; cursor:pointer; justify-content:center; }
+        .star-rating i { color:#555; transition:color 0.2s; }
+        .star-rating i.active, .star-rating i:hover { color:var(--star-color); }
+        .modal-submit { background:transparent; border:1px solid var(--gold); color:var(--gold); padding:12px 25px; border-radius:30px; font-weight:600; letter-spacing:1px; cursor:pointer; transition:var(--transition); text-transform:uppercase; width:100%; }
+        .modal-submit:hover { background:rgba(212,175,55,0.1); border-color:var(--gold-light); color:#fff; }
+        .modal-close { position:absolute; top:15px; right:20px; font-size:1.5rem; color:var(--text-dim); cursor:pointer; transition:color 0.3s; }
+        .modal-close:hover { color:var(--gold); }
 
-        @media (max-width: 480px) {
-            .navbar {
-                padding: 10px 12px;
-                flex-direction: column;
-                gap: 6px;
-            }
-            .nav-links {
-                gap: 8px;
-                justify-content: center;
-            }
-            .nav-links a {
-                font-size: 0.68rem;
-                letter-spacing: 0.5px;
-            }
-            .nav-actions {
-                gap: 6px;
-            }
-            .lang-btn,
-            .theme-btn {
-                padding: 5px 10px;
-                font-size: 0.7rem;
-            }
-            .hero {
-                padding: 40px 12px 30px;
-            }
-            .hero h1 {
-                font-size: 2rem;
-                letter-spacing: 2px;
-            }
-            .hero .subtitle {
-                font-size: 1.1rem;
-                letter-spacing: 1px;
-            }
-            .hero .tagline {
-                font-size: 0.85rem;
-            }
-            .hero-mark-watermark {
-                font-size: 4rem;
-            }
-            section {
-                padding: 18px 12px;
-                margin: 28px 0;
-            }
-            .section-title {
-                font-size: 1.3rem;
-            }
-            .features-grid {
-                grid-template-columns: 1fr;
-            }
-            .payment-grid {
-                gap: 10px;
-            }
-            .payment-item {
-                padding: 14px 18px;
-                min-width: 90px;
-            }
-            .contact-detail {
-                padding: 12px 14px;
-            }
-            body {
-                padding-top: 100px;
-            }
+        @media (max-width:900px) {
+            .navbar { padding:12px 18px; gap:8px; }
+            .nav-logo { font-size:1.3rem; }
+            .nav-logo .amharic-mark { font-size:1.6rem; }
+            .nav-links { gap:12px; }
+            .nav-links a { font-size:0.7rem; }
+            .hero h1 { font-size:2.5rem; }
+            .hero-mark-watermark { font-size:6rem; }
+            .brand-mark { font-size:5rem; }
+            section { padding:24px 16px; margin:36px 0; }
+            .section-title { font-size:1.5rem; }
+            .services-grid { grid-template-columns:1fr; }
+            .features-grid { grid-template-columns:repeat(2,1fr); }
+            .reviews-grid { grid-template-columns:1fr; }
+            body { padding-top:70px; }
+        }
+        @media (max-width:480px) {
+            .navbar { padding:10px 12px; flex-direction:column; gap:6px; }
+            .nav-links { gap:8px; justify-content:center; }
+            .nav-links a { font-size:0.68rem; letter-spacing:0.5px; }
+            .nav-actions { gap:6px; }
+            .lang-btn, .theme-btn { padding:5px 10px; font-size:0.7rem; }
+            .hero { padding:40px 12px 30px; }
+            .hero h1 { font-size:2rem; letter-spacing:2px; }
+            .hero .subtitle { font-size:1.1rem; letter-spacing:1px; }
+            .hero .tagline { font-size:0.85rem; }
+            .hero-mark-watermark { font-size:4rem; }
+            section { padding:18px 12px; margin:28px 0; }
+            .section-title { font-size:1.3rem; }
+            .features-grid { grid-template-columns:1fr; }
+            .payment-grid { gap:10px; }
+            .payment-item { padding:14px 18px; min-width:90px; }
+            .contact-detail { padding:12px 14px; }
+            body { padding-top:100px; }
         }
     </style>
 </head>
@@ -771,8 +272,8 @@
             <span class="amharic-mark">ቃል</span> QAL GEBEYA
         </div>
         <div class="nav-actions">
-            <button class="lang-btn" id="langToggle" aria-label="Switch language"><i class="fa-solid fa-language"></i> አማ</button>
-            <button class="theme-btn" id="themeToggle" aria-label="Switch theme"><i class="fa-solid fa-moon"></i></button>
+            <button class="lang-btn" id="langToggle"><i class="fa-solid fa-language"></i> አማ</button>
+            <button class="theme-btn" id="themeToggle"><i class="fa-solid fa-moon"></i></button>
         </div>
         <ul class="nav-links" id="navLinks">
             <li><a href="#home">Home</a></li>
@@ -866,7 +367,7 @@
             </div>
         </section>
 
-        <!-- Reviews -->
+        <!-- Dynamic Reviews -->
         <section id="reviews" class="reveal">
             <span class="brand-mark">ቃል</span>
             <div class="section-title">
@@ -874,32 +375,12 @@
                 <span data-lang-en="Client Reviews" data-lang-am="የደንበኞች አስተያየት">Client Reviews</span>
                 <span class="section-line"></span>
             </div>
-            <div class="reviews-grid">
-                <div class="review-card">
-                    <div class="review-stars">
-                        <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
-                    </div>
-                    <p class="review-quote" data-lang-en="“Your service is truly excellent! Fast, reliable, and very professional. I will definitely come back.”" data-lang-am="“የናንተ አገልግሎት በጣም ምርጥ ነው! ፈጣን፣ ታማኝ እና በጣም ሙያዊ። በእርግጠኝነት እመለሳለሁ።”">“Your service is truly excellent! Fast, reliable, and very professional. I will definitely come back.”</p>
-                    <p class="review-author">@home127001</p>
-                    <p class="review-platform"><i class="fa-brands fa-telegram"></i> Telegram</p>
-                </div>
-                <div class="review-card">
-                    <div class="review-stars">
-                        <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
-                    </div>
-                    <p class="review-quote" data-lang-en="“Got my TikTok account within minutes. 100% legit and the support team is amazing. Highly recommend!”" data-lang-am="“የቲክቶክ አካውንቴን በደቂቃዎች ውስጥ አገኘሁ። 100% እውነተኛ ነው። በጣም እመክራለሁ!”">“Got my TikTok account within minutes. 100% legit and the support team is amazing. Highly recommend!”</p>
-                    <p class="review-author">@dagi_crypto</p>
-                    <p class="review-platform"><i class="fa-brands fa-telegram"></i> Telegram</p>
-                </div>
-                <div class="review-card">
-                    <div class="review-stars">
-                        <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i>
-                    </div>
-                    <p class="review-quote" data-lang-en="“Best account seller in Ethiopia! Fair prices, quick delivery, and the account was exactly as described.”" data-lang-am="“በኢትዮጵያ ውስጥ ምርጥ አካውንት ሻጭ! ትክክለኛ ዋጋ፣ ፈጣን አቅርቦት፣ አካውንቱም ልክ እንደተገለጸው ነው።”">“Best account seller in Ethiopia! Fair prices, quick delivery, and the account was exactly as described.”</p>
-                    <p class="review-author">@henok_trades</p>
-                    <p class="review-platform"><i class="fa-brands fa-telegram"></i> Telegram</p>
-                </div>
+            <div class="reviews-header">
+                <span></span>
+                <button class="review-btn" id="openReviewModal" data-lang-en="Leave a Review" data-lang-am="አስተያየት ይስጡ">Leave a Review</button>
             </div>
+            <div class="reviews-grid" id="reviewsContainer"></div>
+            <div class="see-all-btn" id="seeAllBtn" data-lang-en="See All Reviews" data-lang-am="ሁሉንም አስተያየቶች ይመልከቱ">See All Reviews</div>
         </section>
 
         <!-- Contact -->
@@ -936,25 +417,55 @@
             <span data-lang-en="— Creative Digital Solutions" data-lang-am="— የፈጠራ ዲጂታል አገልግሎቶች">— Creative Digital Solutions</span>
         </div>
 
-        <!-- Footer -->
         <footer>
             <p data-lang-en="&copy; 2025 <span class='gold-text'>QAL GEBEYA</span> · Elite Account Solutions. All rights reserved." data-lang-am="&copy; 2025 <span class='gold-text'>QAL GEBEYA</span> · የላቀ አካውንት አገልግሎት። መብቱ በህግ የተጠበቀ ነው።">&copy; 2025 <span class="gold-text">QAL GEBEYA</span> · Elite Account Solutions. All rights reserved.</p>
         </footer>
     </div>
 
+    <!-- Review Modal -->
+    <div class="modal-overlay" id="reviewModal">
+        <div class="modal">
+            <span class="modal-close" id="closeModal"><i class="fa-solid fa-times"></i></span>
+            <h3 data-lang-en="Share Your Experience" data-lang-am="ልምድዎን ያካፍሉ">Share Your Experience</h3>
+            <input type="text" id="reviewName" placeholder="Your Name" data-lang-en-placeholder="Your Name" data-lang-am-placeholder="ስምዎ">
+            <input type="text" id="reviewUsername" placeholder="Telegram Username (@example)" data-lang-en-placeholder="Telegram Username (@example)" data-lang-am-placeholder="የቴሌግራም ስም (@example)">
+            <div class="star-rating" id="starRating">
+                <i class="fa-solid fa-star" data-value="1"></i>
+                <i class="fa-solid fa-star" data-value="2"></i>
+                <i class="fa-solid fa-star" data-value="3"></i>
+                <i class="fa-solid fa-star" data-value="4"></i>
+                <i class="fa-solid fa-star" data-value="5"></i>
+            </div>
+            <textarea id="reviewComment" rows="3" placeholder="Your comment..." data-lang-en-placeholder="Your comment..." data-lang-am-placeholder="አስተያየትዎ..."></textarea>
+            <button class="modal-submit" id="submitReview">Submit Review</button>
+        </div>
+    </div>
+
+    <!-- Firebase -->
     <script>
+        // Your Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCdV8cm7leg2baTJ12FCU41jA8k07O0lM4",
+            authDomain: "msgt-f7274.firebaseapp.com",
+            projectId: "msgt-f7274",
+            storageBucket: "msgt-f7274.firebasestorage.app",
+            messagingSenderId: "891927413561",
+            appId: "1:891927413561:web:5485ce8a4e55779e6c9ee8",
+            measurementId: "G-SJGC8FDS53"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+    </script>
+
+    <script>
+        // Language & Theme logic
         const translations = {
             en: {
-                home: "Home",
-                about: "About",
-                services: "Services",
-                whyus: "Why Us",
-                reviews: "Reviews",
-                contact: "Contact",
+                home: "Home", about: "About", services: "Services", whyus: "Why Us",
+                reviews: "Reviews", contact: "Contact",
                 heroSub: "Elite Account Solutions",
                 heroTag: "Premium social media accounts — TikTok & more. Trusted, fast, and secure.",
-                heroCta: "Get Started",
-                joinChannel: "Join Channel",
+                heroCta: "Get Started", joinChannel: "Join Channel",
                 aboutTitle: "About QAL GEBEYA",
                 aboutText: "QAL GEBEYA is your trusted source for premium, verified social media accounts. We specialise in TikTok and other platform accounts, delivering quality and security with every transaction. Our clients enjoy fast delivery, competitive rates, and dedicated support.",
                 servicesTitle: "Our Services",
@@ -963,36 +474,26 @@
                 other: "Other Platforms",
                 otherDesc: "Instagram, Twitter/X, Facebook, YouTube, Snapchat — rare and valuable account assets available.",
                 whyTitle: "Why Choose QAL GEBEYA",
-                fast: "Fast Delivery",
-                secure: "100% Secure",
-                rates: "Top Rates",
-                support: "24/7 Support",
-                verified: "Verified Accounts",
-                privacy: "Confidentiality",
+                fast: "Fast Delivery", secure: "100% Secure", rates: "Top Rates",
+                support: "24/7 Support", verified: "Verified Accounts", privacy: "Confidentiality",
                 paymentTitle: "Accepted Payment",
-                reviewsTitle: "Client Reviews",
-                review1: "“Your service is truly excellent! Fast, reliable, and very professional. I will definitely come back.”",
-                review2: "“Got my TikTok account within minutes. 100% legit and the support team is amazing. Highly recommend!”",
-                review3: "“Best account seller in Ethiopia! Fair prices, quick delivery, and the account was exactly as described.”",
-                contactTitle: "Get In Touch",
-                personal: "(Personal)",
-                channel: "(Channel)",
+                reviewsTitle: "Client Reviews", leaveReview: "Leave a Review",
+                seeAll: "See All Reviews", showLess: "Show Less",
+                contactTitle: "Get In Touch", personal: "(Personal)", channel: "(Channel)",
                 phone: "0962801664",
-                poweredBy: "Powered by",
-                poweredTag: "— Creative Digital Solutions",
-                footer: "&copy; 2025 <span class='gold-text'>QAL GEBEYA</span> · Elite Account Solutions. All rights reserved."
+                poweredBy: "Powered by", poweredTag: "— Creative Digital Solutions",
+                footer: "&copy; 2025 <span class='gold-text'>QAL GEBEYA</span> · Elite Account Solutions. All rights reserved.",
+                modalTitle: "Share Your Experience",
+                namePlaceholder: "Your Name",
+                usernamePlaceholder: "Telegram Username (@example)",
+                commentPlaceholder: "Your comment..."
             },
             am: {
-                home: "መግቢያ",
-                about: "ስለ እኛ",
-                services: "አገልግሎቶች",
-                whyus: "ለምን እኛ",
-                reviews: "አስተያየቶች",
-                contact: "ያግኙን",
+                home: "መግቢያ", about: "ስለ እኛ", services: "አገልግሎቶች", whyus: "ለምን እኛ",
+                reviews: "አስተያየቶች", contact: "ያግኙን",
                 heroSub: "የላቀ አካውንት አገልግሎት",
                 heroTag: "የተመረጡ የማህበራዊ ሚዲያ አካውንቶች — ቲክቶክ እና ሌሎችም። የታመነ፣ ፈጣን እና ደህንነቱ የተጠበቀ።",
-                heroCta: "ይጀምሩ",
-                joinChannel: "ቻናላችንን ይቀላቀሉ",
+                heroCta: "ይጀምሩ", joinChannel: "ቻናላችንን ይቀላቀሉ",
                 aboutTitle: "ስለ QAL GEBEYA",
                 aboutText: "QAL GEBEYA ለተመረጡ እና ለተረጋገጡ የማህበራዊ ሚዲያ አካውንቶች ታማኝ ምንጭዎ ነው። በቲክቶክ እና ሌሎች መድረኮች ላይ እንሰራለን። እያንዳንዱ ግብይት ጥራትን እና ደህንነትን ያረጋግጣል። ደንበኞቻችን ፈጣን አቅርቦት፣ ተወዳዳሪ ዋጋ እና የተረጋገጠ ድጋፍ ያገኛሉ።",
                 servicesTitle: "አገልግሎቶቻችን",
@@ -1001,29 +502,23 @@
                 other: "ሌሎች መድረኮች",
                 otherDesc: "ኢንስታግራም፣ ትዊተር/X፣ ፌስቡክ፣ ዩቲዩብ፣ ስናፕቻት — ብርቅዬ እና ዋጋ ያላቸው ንብረቶች ይገኛሉ።",
                 whyTitle: "ለምን QAL GEBEYA ምርጫዎ ነው",
-                fast: "ፈጣን አቅርቦት",
-                secure: "100% ደህንነቱ የተጠበቀ",
-                rates: "ምርጥ ዋጋ",
-                support: "24/7 ድጋፍ",
-                verified: "የተረጋገጡ አካውንቶች",
-                privacy: "ሚስጥራዊነት",
+                fast: "ፈጣን አቅርቦት", secure: "100% ደህንነቱ የተጠበቀ", rates: "ምርጥ ዋጋ",
+                support: "24/7 ድጋፍ", verified: "የተረጋገጡ አካውንቶች", privacy: "ሚስጥራዊነት",
                 paymentTitle: "የክፍያ አማራጮች",
-                reviewsTitle: "የደንበኞች አስተያየት",
-                review1: "“የናንተ አገልግሎት በጣም ምርጥ ነው! ፈጣን፣ ታማኝ እና በጣም ሙያዊ። በእርግጠኝነት እመለሳለሁ።”",
-                review2: "“የቲክቶክ አካውንቴን በደቂቃዎች ውስጥ አገኘሁ። 100% እውነተኛ ነው። በጣም እመክራለሁ!”",
-                review3: "“በኢትዮጵያ ውስጥ ምርጥ አካውንት ሻጭ! ትክክለኛ ዋጋ፣ ፈጣን አቅርቦት፣ አካውንቱም ልክ እንደተገለጸው ነው።”",
-                contactTitle: "ያግኙን",
-                personal: "(የግል)",
-                channel: "(ቻናል)",
+                reviewsTitle: "የደንበኞች አስተያየት", leaveReview: "አስተያየት ይስጡ",
+                seeAll: "ሁሉንም አስተያየቶች ይመልከቱ", showLess: "አሳይ ያንሱ",
+                contactTitle: "ያግኙን", personal: "(የግል)", channel: "(ቻናል)",
                 phone: "0962801664",
-                poweredBy: "በ",
-                poweredTag: "— የፈጠራ ዲጂታል አገልግሎቶች",
-                footer: "&copy; 2025 <span class='gold-text'>QAL GEBEYA</span> · የላቀ አካውንት አገልግሎት። መብቱ በህግ የተጠበቀ ነው።"
+                poweredBy: "በ", poweredTag: "— የፈጠራ ዲጂታል አገልግሎቶች",
+                footer: "&copy; 2025 <span class='gold-text'>QAL GEBEYA</span> · የላቀ አካውንት አገልግሎት። መብቱ በህግ የተጠበቀ ነው።",
+                modalTitle: "ልምድዎን ያካፍሉ",
+                namePlaceholder: "ስምዎ",
+                usernamePlaceholder: "የቴሌግራም ስም (@example)",
+                commentPlaceholder: "አስተያየትዎ..."
             }
         };
 
         let currentLang = 'en';
-
         function switchLanguage(lang) {
             currentLang = lang;
             document.documentElement.lang = lang;
@@ -1031,24 +526,30 @@
                 const text = lang === 'en' ? el.getAttribute('data-lang-en') : el.getAttribute('data-lang-am');
                 if (text) el.innerHTML = text;
             });
-            // Update nav links
             document.querySelectorAll('#navLinks a').forEach(a => {
                 const href = a.getAttribute('href');
-                const key = href === '#home' ? 'home' : href === '#about' ? 'about' : href ===
-                    '#services' ? 'services' : href === '#features' ? 'whyus' : href === '#reviews' ?
-                    'reviews' : 'contact';
+                const key = href === '#home' ? 'home' : href === '#about' ? 'about' : href === '#services' ? 'services' : href === '#features' ? 'whyus' : href === '#reviews' ? 'reviews' : 'contact';
                 a.textContent = translations[lang][key];
             });
-            document.getElementById('langToggle').innerHTML = lang === 'en' ?
-                '<i class="fa-solid fa-language"></i> አማ' :
-                '<i class="fa-solid fa-language"></i> EN';
+            document.getElementById('langToggle').innerHTML = lang === 'en' ? '<i class="fa-solid fa-language"></i> አማ' : '<i class="fa-solid fa-language"></i> EN';
             const phoneEl = document.querySelector('.contact-detail a[href^="tel:"] .contact-detail-text strong');
             if (phoneEl) phoneEl.textContent = translations[lang].phone;
-            // Powered by
             const poweredSpan = document.querySelector('.powered-by span:first-child');
             const poweredTag = document.querySelector('.powered-by span:last-child');
             if (poweredSpan) poweredSpan.textContent = translations[lang].poweredBy;
             if (poweredTag) poweredTag.textContent = translations[lang].poweredTag;
+            // Modal placeholders
+            document.getElementById('reviewName').placeholder = translations[lang].namePlaceholder;
+            document.getElementById('reviewUsername').placeholder = translations[lang].usernamePlaceholder;
+            document.getElementById('reviewComment').placeholder = translations[lang].commentPlaceholder;
+            document.querySelector('.modal h3').textContent = translations[lang].modalTitle;
+            document.getElementById('openReviewModal').textContent = translations[lang].leaveReview;
+            const seeAllBtn = document.getElementById('seeAllBtn');
+            if (seeAllBtn.dataset.expanded === 'true') {
+                seeAllBtn.textContent = translations[lang].showLess;
+            } else {
+                seeAllBtn.textContent = translations[lang].seeAll;
+            }
         }
 
         const themeToggle = document.getElementById('themeToggle');
@@ -1057,9 +558,7 @@
             const currentTheme = html.getAttribute('data-theme');
             const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
             html.setAttribute('data-theme', newTheme);
-            themeToggle.innerHTML = newTheme === 'dark' ?
-                '<i class="fa-solid fa-moon"></i>' :
-                '<i class="fa-solid fa-sun"></i>';
+            themeToggle.innerHTML = newTheme === 'dark' ? '<i class="fa-solid fa-moon"></i>' : '<i class="fa-solid fa-sun"></i>';
         });
 
         const langToggle = document.getElementById('langToggle');
@@ -1067,17 +566,16 @@
             const newLang = currentLang === 'en' ? 'am' : 'en';
             switchLanguage(newLang);
         });
-
         switchLanguage('en');
 
+        // Scroll reveal
         const revealElements = document.querySelectorAll('.reveal');
         const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) entry.target.classList.add('visible');
-            });
+            entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
         }, { threshold: 0.1, rootMargin: '0px 0px -20px 0px' });
         revealElements.forEach(el => observer.observe(el));
 
+        // Smooth scroll
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function(e) {
                 e.preventDefault();
@@ -1089,6 +587,138 @@
                 }
             });
         });
+
+        // ========== FIREBASE REVIEW SYSTEM ==========
+        let allReviews = [];
+        let showAll = false;
+        const reviewsContainer = document.getElementById('reviewsContainer');
+        const seeAllBtn = document.getElementById('seeAllBtn');
+
+        const modalOverlay = document.getElementById('reviewModal');
+        const openModalBtn = document.getElementById('openReviewModal');
+        const closeModalBtn = document.getElementById('closeModal');
+        const submitReviewBtn = document.getElementById('submitReview');
+        const starRatingContainer = document.getElementById('starRating');
+        const reviewNameInput = document.getElementById('reviewName');
+        const reviewUsernameInput = document.getElementById('reviewUsername');
+        const reviewCommentInput = document.getElementById('reviewComment');
+
+        let selectedRating = 0;
+
+        starRatingContainer.addEventListener('click', (e) => {
+            if (e.target.classList.contains('fa-star')) {
+                selectedRating = parseInt(e.target.getAttribute('data-value'));
+                updateStars(selectedRating);
+            }
+        });
+
+        function updateStars(rating) {
+            const stars = starRatingContainer.querySelectorAll('i');
+            stars.forEach(star => {
+                star.classList.remove('active');
+                if (parseInt(star.getAttribute('data-value')) <= rating) {
+                    star.classList.add('active');
+                }
+            });
+        }
+
+        openModalBtn.addEventListener('click', () => {
+            modalOverlay.classList.add('active');
+            reviewNameInput.value = '';
+            reviewUsernameInput.value = '';
+            reviewCommentInput.value = '';
+            selectedRating = 0;
+            updateStars(0);
+        });
+
+        closeModalBtn.addEventListener('click', () => {
+            modalOverlay.classList.remove('active');
+        });
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) modalOverlay.classList.remove('active');
+        });
+
+        submitReviewBtn.addEventListener('click', async () => {
+            const name = reviewNameInput.value.trim();
+            const username = reviewUsernameInput.value.trim();
+            const comment = reviewCommentInput.value.trim();
+            if (!name || !username || !comment || selectedRating === 0) {
+                alert('All fields are required. Please fill in your name, Telegram username, rating, and comment.');
+                return;
+            }
+            if (!username.startsWith('@')) {
+                alert('Telegram username must start with @');
+                return;
+            }
+            try {
+                await db.collection('reviews').add({
+                    name: name,
+                    username: username,
+                    rating: selectedRating,
+                    comment: comment,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                modalOverlay.classList.remove('active');
+                loadReviews();
+            } catch (error) {
+                console.error('Error adding review:', error);
+                alert('Failed to submit review. Check console for details.');
+            }
+        });
+
+        async function loadReviews() {
+            try {
+                const snapshot = await db.collection('reviews').orderBy('timestamp', 'desc').get();
+                allReviews = [];
+                snapshot.forEach(doc => {
+                    allReviews.push({ id: doc.id, ...doc.data() });
+                });
+                renderReviews();
+            } catch (error) {
+                console.error('Error loading reviews:', error);
+                reviewsContainer.innerHTML = '<p style="color:var(--text-dim); text-align:center;">Unable to load reviews.</p>';
+            }
+        }
+
+        function renderReviews() {
+            if (allReviews.length === 0) {
+                reviewsContainer.innerHTML = '<p style="color:var(--text-dim); text-align:center;">No reviews yet. Be the first!</p>';
+                seeAllBtn.style.display = 'none';
+                return;
+            }
+            const reviewsToShow = showAll ? allReviews : allReviews.slice(0, 3);
+            let html = '';
+            reviewsToShow.forEach(review => {
+                const date = review.timestamp ? new Date(review.timestamp.seconds * 1000).toLocaleDateString() : '';
+                const starsHtml = Array.from({ length: 5 }, (_, i) =>
+                    `<i class="fa-solid fa-star${i < review.rating ? '' : ' regular'}" style="color:${i < review.rating ? 'var(--star-color)' : '#555'};"></i>`
+                ).join('');
+                html += `
+                    <div class="review-card">
+                        <div class="review-stars">${starsHtml}</div>
+                        <p class="review-quote">“${review.comment}”</p>
+                        <p class="review-author">${review.name}</p>
+                        <p class="review-username">${review.username}</p>
+                        ${date ? `<p class="review-date">${date}</p>` : ''}
+                    </div>
+                `;
+            });
+            reviewsContainer.innerHTML = html;
+            if (allReviews.length > 3) {
+                seeAllBtn.style.display = 'block';
+                seeAllBtn.textContent = showAll ? translations[currentLang].showLess : translations[currentLang].seeAll;
+                seeAllBtn.dataset.expanded = showAll ? 'true' : 'false';
+            } else {
+                seeAllBtn.style.display = 'none';
+            }
+        }
+
+        seeAllBtn.addEventListener('click', () => {
+            showAll = !showAll;
+            renderReviews();
+        });
+
+        loadReviews();
     </script>
 </body>
 </html>
